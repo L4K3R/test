@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vážený losovač jmen</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --highlight: #fef08a;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            line-height: 1.5;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.secondary {
+            background-color: #e2e8f0;
+            color: var(--text);
+        }
+
+        button.secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        .result-box {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .winners {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .winner-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .person-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s;
+        }
+
+        .person-card.just-picked {
+            background-color: var(--highlight);
+            border-color: #eab308;
+        }
+
+        .person-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .name-row {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .person-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .edit-inline-btn {
+            background: transparent;
+            color: var(--muted);
+            padding: 0.15rem 0.35rem;
+            font-size: 0.85rem;
+            border-radius: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .edit-inline-btn:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .inline-input {
+            width: 100%;
+            padding: 0.25rem 0.4rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 600;
+            border: 1px solid var(--primary);
+            border-radius: 0.25rem;
+            box-sizing: border-box;
+        }
+
+        .person-stats {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .prob-badge {
+            background: #f1f5f9;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .bulk-edit-section {
+            margin-top: 3rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .bulk-edit-section h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Losování jmen</h1>
+    <p class="subtitle">Vybraným jménům se sníží váha na polovinu (nikdy však neklesne na nulu). Stav se automaticky ukládá.</p>
+
+    <div class="controls">
+        <button id="drawBtn">Vybrat 3 jména</button>
+        <button id="resetWeightsBtn" class="secondary">Resetovat pravděpodobnosti</button>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <span style="color: var(--muted);">Klikněte na tlačítko pro losování</span>
+    </div>
+
+    <div class="grid" id="namesGrid"></div>
+
+    <div class="bulk-edit-section">
+        <h3>Hromadná úprava seznamu jmen</h3>
+        <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0;">Zadejte jedno jméno na řádek. U jmen, která v seznamu zůstanou stejná, se zachová jejich dosavadní pravděpodobnost.</p>
+        <textarea id="namesInput"></textarea>
+        <div class="bulk-actions">
+            <button id="saveNamesBtn">Uložit seznam jmen</button>
+            <button id="restoreDefaultNamesBtn" class="secondary">Obnovit výchozích 30 jmen</button>
+        </div>
+    </div>
+
+    <script>
+        const defaultNames = [
+            "Jan Novák", "Petr Svoboda", "Jakub Novotný", "Tomáš Dvořák", "Lukáš Černý",
+            "Matěj Procházka", "Ondřej Kučera", "Filip Veselý", "David Horák", "Adam Němec",
+            "Vojtěch Marek", "Marek Pokorný", "Daniel Pospíšil", "Štěpán Hájek", "Dominik Král",
+            "Eliška Jelínková", "Tereza Růžičková", "Anna Benešová", "Adéla Fialová", "Natálie Sedláčková",
+            "Sofie Doležalová", "Karolína Zemanová", "Viktorie Kolářová", "Barbora Navrátilová", "Nela Čermáková",
+            "Kristýna Vaňková", "Lucie Urbanová", "Kateřina Blažková", "Veronika Křížová", "Klára Kovářová"
+        ];
+
+        const STORAGE_KEY = 'weighted_names_app_v2';
+        const PENALTY_FACTOR = 0.5;
+        const MIN_WEIGHT = 0.0001;
+
+        let people = [];
+        let lastWinnerIds = [];
+        let editingIndex = null;
+
+        // Generátor unikátního ID pro každou položku
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                people = JSON.parse(saved);
+            } else {
+                people = defaultNames.map(name => ({
+                    id: generateId(),
+                    name: name,
+                    weight: 1.0,
+                    picks: 0
+                }));
+                saveData();
+            }
+            syncTextarea();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(people));
+            syncTextarea();
+        }
+
+        function syncTextarea() {
+            document.getElementById('namesInput').value = people.map(p => p.name).join('\n');
+        }
+
+        function pickWeightedRandom(items, count) {
+            const selected = [];
+            let pool = [...items];
+            const actualCount = Math.min(count, pool.length);
+
+            for (let i = 0; i < actualCount; i++) {
+                const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+                let random = Math.random() * totalWeight;
+                
+                for (let j = 0; j < pool.length; j++) {
+                    random -= pool[j].weight;
+                    if (random <= 0) {
+                        selected.push(pool[j]);
+                        pool.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+            return selected;
+        }
+
+        function handleDraw() {
+            if (people.length === 0) return;
+            editingIndex = null;
+
+            const winners = pickWeightedRandom(people, 3);
+            lastWinnerIds = winners.map(w => w.id);
+
+            winners.forEach(winner => {
+                const person = people.find(p => p.id === winner.id);
+                if (person) {
+                    person.picks += 1;
+                    person.weight = Math.max(person.weight * PENALTY_FACTOR, MIN_WEIGHT);
+                }
+            });
+
+            saveData();
+            renderWinners(winners);
+            renderGrid();
+        }
+
+        function renderWinners(winners) {
+            const resultBox = document.getElementById('resultBox');
+            resultBox.innerHTML = `
+                <div style="font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem;">Vybraná jména:</div>
+                <div class="winners">
+                    ${winners.map(w => `<span class="winner-badge">${escapeHtml(w.name)}</span>`).join('')}
+                </div>
+            `;
+        }
+
+        // Ochrana proti HTML znakům ve jménech
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('namesGrid');
+            const totalWeight = people.reduce((sum, p) => sum + p.weight, 0);
+
+            grid.innerHTML = people.map((person, index) => {
+                const probability = totalWeight > 0 ? ((person.weight / totalWeight) * 100).toFixed(2) : 0;
+                const isJustPicked = lastWinnerIds.includes(person.id);
+                const isEditing = editingIndex === index;
+
+                const nameContent = isEditing 
+                    ? `<input type="text" class="inline-input" id="inlineInput_${index}" value="${escapeHtml(person.name)}" onkeydown="handleInlineKey(event, ${index})" onblur="saveInlineEdit(${index})">`
+                    : `<div class="name-row">
+                           <span class="person-name" title="${escapeHtml(person.name)}">${escapeHtml(person.name)}</span>
+                           <button class="edit-inline-btn" onclick="startInlineEdit(${index})" title="Upravit jméno">✏️</button>
+                       </div>`;
+
+                return `
+                    <div class="person-card ${isJustPicked ? 'just-picked' : ''}">
+                        <div class="person-info">
+                            ${nameContent}
+                            <span class="person-stats">Vybráno: ${person.picks}×</span>
+                        </div>
+                        <span class="prob-badge" title="Relativní šance na výběr">${probability} %</span>
+                    </div>
+                `;
+            }).join('');
+
+            if (editingIndex !== null) {
+                const input = document.getElementById(`inlineInput_${editingIndex}`);
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }
+        }
+
+        // Zahájení úpravy konkrétní karty
+        window.startInlineEdit = function(index) {
+            editingIndex = index;
+            renderGrid();
+        };
+
+        // Uložení úpravy konkrétní karty
+        window.saveInlineEdit = function(index) {
+            if (editingIndex !== index) return;
+            const input = document.getElementById(`inlineInput_${index}`);
+            if (input) {
+                const newName = input.value.trim();
+                if (newName.length > 0) {
+                    people[index].name = newName;
+                    saveData();
+                }
+            }
+            editingIndex = null;
+            renderGrid();
+        };
+
+        // Ovládání klávesnicí při úpravě (Enter = uložit, Esc = zrušit)
+        window.handleInlineKey = function(event, index) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveInlineEdit(index);
+            } else if (event.key === 'Escape') {
+                editingIndex = null;
+                renderGrid();
+            }
+        };
+
+        function handleResetWeights() {
+            editingIndex = null;
+            people.forEach(p => {
+                p.weight = 1.0;
+                p.picks = 0;
+            });
+            lastWinnerIds = [];
+            saveData();
+            document.getElementById('resultBox').innerHTML = `<span style="color: var(--muted);">Pravděpodobnosti byly resetovány.</span>`;
+            renderGrid();
+        }
+
+        function handleSaveNames() {
+            const rawText = document.getElementById('namesInput').value;
+            const newNames = rawText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            
+            if (newNames.length < 3) {
+                alert("Zadejte prosím alespoň 3 jména.");
+                return;
+            }
+
+            // Vytvoříme kopii stávajících záznamů, abychom mohli spárovat stejná jména
+            const availableExisting = [...people];
+
+            people = newNames.map(name => {
+                const matchIndex = availableExisting.findIndex(p => p.name === name);
+                if (matchIndex !== -1) {
+                    const matched = availableExisting[matchIndex];
+                    availableExisting.splice(matchIndex, 1);
+                    return matched;
+                }
+                return { id: generateId(), name: name, weight: 1.0, picks: 0 };
+            });
+
+            editingIndex = null;
+            lastWinnerIds = [];
+            saveData();
+            renderGrid();
+            document.getElementById('resultBox').innerHTML = `<span style="color: var(--muted);">Seznam jmen byl aktualizován (${people.length} jmen).</span>`;
+        }
+
+        function handleRestoreDefaults() {
+            if (!confirm("Opravdu chcete obnovit výchozích 30 jmen? Současné statistiky se vymažou.")) return;
+            people = defaultNames.map(name => ({
+                id: generateId(),
+                name: name,
+                weight: 1.0,
+                picks: 0
+            }));
+            editingIndex = null;
+            lastWinnerIds = [];
+            saveData();
+            renderGrid();
+            document.getElementById('resultBox').innerHTML = `<span style="color: var(--muted);">Obnoven výchozí seznam 30 jmen.</span>`;
+        }
+
+        document.getElementById('drawBtn').addEventListener('click', handleDraw);
+        document.getElementById('resetWeightsBtn').addEventListener('click', handleResetWeights);
+        document.getElementById('saveNamesBtn').addEventListener('click', handleSaveNames);
+        document.getElementById('restoreDefaultNamesBtn').addEventListener('click', handleRestoreDefaults);
+
+        loadData();
+        renderGrid();
+    </script>
+</body>
+</html>
